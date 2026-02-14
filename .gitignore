@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+
+# Данные
+*.doc
+*.docx
+*.xlsx
+*.xls
+
+# Excel временные
+~$*.xlsx
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
