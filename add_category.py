@@ -3,9 +3,9 @@ import re
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
-INPUT_XLSX = "BOM_all_sorted.xlsx"                 # или BOM_all_sorted.xlsx
+INPUT_XLSX = "BOMs_parsed.xlsx"                 # или BOM_all_sorted.xlsx
 SHEET_NAME = "BOM"                          # если лист иначе — поменяй
-OUTPUT_XLSX = "BOM_all_with_category.xlsx"  # выход
+OUTPUT_XLSX = "BOM_with_category.xlsx"  # выход
 
 # --------------------------
 # Категории (порядок важен)
@@ -27,7 +27,7 @@ RULES = [
 
     # 3) Предохранители (лучше раньше резисторов/прочего)
     ("Предохранители", re.compile(
-        r"(?iu)\b(предохранител|fuse)\b|\bFU\d+\b",
+        r"(?iu)\bпредохранител(?:[\w\-–—]*?)\b|\bfuse\w*\b|\bFU\d+\b",
         re.I
     )),
 
@@ -42,19 +42,23 @@ RULES = [
     ("Полупроводниковые изделия", re.compile(
     r"(?iu)\b("
     r"линейн\w*\s+регулятор|"
+    r"генератор|"
     r"регулятор\s+напряжени\w*\s+линейн\w*|"
     r"модул\w*\s+памят\w*|"
     r"мост\s+диодн\w*|"
     r"оптрон\w*|"
     r"позистор\w*|"
     r"стабилитрон\w*|"
+    r"стабилизатор\w*|"
     r"термистор\w*|"
+    r"термометр \w*|"
     r"усилител\w*\s+звуков\w*\s+мощност\w*|"
     r"усилител\w*\s+низк\w*\s+частот\w*|"
     r"усилител\w*\s+операцион\w*|"
     r"операцион\w*\s+усилител\w*|"
     r"регистр|"
     r"резонатор|"
+    r"преобразователь\w*|dc/?dc|ac/?dc"
     r"инвертер|"
     r"микросхем\w*|"
     r"диод|"
@@ -94,7 +98,7 @@ RULES = [
 
     # 8) Резисторы
     ("Резисторы", re.compile(
-        r"(?iu)\b(резистор|сборка\s*резисторн\w*|resistor)\b|\bR\d+\b",
+        r"(?iu)\b(резистор\w*|сборка\s*резисторн\w*|резисторн\w*\s*сборка|потенциометр\w*|шунт\w*|resistor|potentiometer|shunt)\b|\bR\d+\b",
         re.I
     )),
 
