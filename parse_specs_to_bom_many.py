@@ -11,6 +11,10 @@ from docx import Document
 import re
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+from specs_list import SPECS
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent
+SPECS_DIR = BASE_DIR / "specs"
 
 
 # ==========================
@@ -19,25 +23,6 @@ from openpyxl.utils import get_column_letter
 
 OUTPUT_XLSX = "BOMs_parsed.xlsx"  # один общий выходной Excel
 
-# Коллекция (упорядоченная) пар: (INPUT_DOCX, MODULE_CODE)
-# Важно: порядок сохранится ровно как здесь.
-SPECS = [
-    ("КОР-01.00.000 Система связи модели DVS-21 Спецификация.docx", "КОР-01.00.000"),
-    ("КОР-01.10.000 Кросс-плата. Спецификация.docx", "КОР-01.10.000"),
-    ("КОР-01.20.000 Кросс-плата. Спецификация.docx", "КОР-01.20.000"),
-    ("КОР-01.30.000 Кросс-плата. Спецификация.docx", "КОР-01.30.000"),
-    ("КОР-01.31.000 Плата вспомогательная Спецификация.docx", "КОР-01.31.000"),
-    ("КОР-01.40.000 Кросс-плата. Спецификация.docx", "КОР-01.40.000"),
-    ("КОР-03.12.000 Модуль BusCPU. Спецификация.docx", "КОР-03.12.000"),
-    ("КОР-03.13.000 Модуль связи Е1 Спецификация.docx", "КОР-03.13.000"),
-    ("КОР-04.00.000 Пульт диспетчерский DTA-030 (спецификация).docx", "КОР-04.00.000"),
-    ("КОР-04.10.000 Плата управления DTA-G Спецификация.docx", "КОР-04.10.000"),
-    ("КОР-04.20.000 Плата кнопочная ТА-30Т-Т Спецификация.docx", "КОР-04.20.000"),
-    ("КОР-05.00.000 Переговорное устройство WPS-04-25 Спецификация.docx", "КОР-05.00.000"),
-    ("КОР-05.10.000 Плата управления WPS-04 Спецификация.docx", "КОР-05.10.000"),
-    ("КОР-05.20.000 Плата усилителя. Спецификация.docx", "КОР-05.20.000"),
-    # добавляй дальше...
-]
 
 
 # ==========================
@@ -246,8 +231,9 @@ def save_xlsx_many(specs, path):
     total_rows = 0
 
     for i, (input_docx, module_code) in enumerate(specs, start=1):
-        data = parse_spec(input_docx, module_code)
-
+        #data = parse_spec(input_docx, module_code)
+        input_path = SPECS_DIR / input_docx
+        data = parse_spec(str(input_path), module_code)
         # сортировка блока: Section (Стандартные/Прочие) + PosText (числа, потом прочерки)
         data.sort(key=lambda x: (0 if x[1] == "Стандартные" else 1, pos_sort_key(x[2])))
 
