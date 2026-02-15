@@ -2,7 +2,7 @@ import re
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
-INPUT_XLSX = "BOM_with_category.xlsx"   # или твой BOM_all.xlsx
+INPUT_XLSX = "BOM_compressed_by_name.xlsx"
 SHEET = "BOM"
 OUTPUT_XLSX = "BOM_split.xlsx"
 
@@ -32,16 +32,26 @@ PART_BAD = set(map(str.upper, [
 def clean(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").strip())
 
-def split_name(name: str):
-    s = clean(name)
-    supply_parts = []
 
-    # 1) Vendor в кавычках в конце
+def split_name(name: str):
+    """
+    Возвращает (Name_Clean, SupplyDoc)
+
+    Требования:
+    - Vendor попадает в конец SupplyDoc только если реально есть в кавычках в конце исходной строки.
+    - Vendor в SupplyDoc в кавычках.
+    - Перед vendor точка с запятой не ставится.
+    """
+    s = clean(name)
+
+    # 1) Vendor в кавычках в конце — держим ОТДЕЛЬНО, НЕ кладём в supply_parts
+    vendor = None
     m = VENDOR_QUOTED_AT_END.search(s)
     if m:
         vendor = clean(m.group(1))
-        supply_parts.append(vendor)
-        s = clean(s[:m.start()])
+        s = clean(s[:m.start()])  # удалили "Vendor" из анализируемой строки
+
+    supply_parts = []  # сюда только стандарты/децимал/артикул
 
     # 2) Стандарты
     stds = [clean(x.group(0)) for x in STD_RE.finditer(s)]
@@ -70,38 +80,15 @@ def split_name(name: str):
         supply_parts.append(part)
         s = clean(re.sub(re.escape(part), "", s, count=1))
 
-    # --- финальная сборка SupplyDoc ---
-    vendor = None
-    other_parts = []
+    # Уникализация (с сохранением порядка)
+    supply_parts = list(dict.fromkeys([p for p in supply_parts if p]))
 
-    # vendor мы извлекали самым первым (если был)
-    if supply_parts:
-        # если первый элемент был vendor (как сейчас логика делает)
-        # определяем vendor по факту того, что он был найден через VENDOR_QUOTED_AT_END
-        m_vendor = VENDOR_QUOTED_AT_END.search(name)
-        if m_vendor:
-            vendor = clean(m_vendor.group(1))
-
-    # пересобираем список без vendor
-    for p in supply_parts:
-        if vendor and p == vendor:
-            continue
-        if p:
-            other_parts.append(p)
-
-    # удаляем дубли
-    other_parts = list(dict.fromkeys(other_parts))
-
+    # Финальная сборка SupplyDoc
+    supply_doc = "; ".join(supply_parts)
     if vendor:
-        if other_parts:
-            supply_doc = clean("; ".join(other_parts)) + f' "{vendor}"'
-        else:
-            supply_doc = f'"{vendor}"'
-    else:
-        supply_doc = clean("; ".join(other_parts))
+        supply_doc = (supply_doc + f' "{vendor}"') if supply_doc else f'"{vendor}"'
 
     name_clean = clean(s)
-
     return name_clean, supply_doc
 
 
@@ -112,6 +99,7 @@ def ensure_col(ws, headers, col_name, width=40):
     ws.cell(1, col).value = col_name
     ws.column_dimensions[get_column_letter(col)].width = width
     return col
+
 
 def main():
     wb = load_workbook(INPUT_XLSX)
@@ -134,6 +122,7 @@ def main():
 
     wb.save(OUTPUT_XLSX)
     print(f"OK: {OUTPUT_XLSX}")
+
 
 if __name__ == "__main__":
     main()
