@@ -4,7 +4,7 @@ from openpyxl.styles import Alignment
 from openpyxl.utils import get_column_letter
 
 # ========= НАСТРОЙКИ =========
-INPUT_XLSX = "BOM_with_category.xlsx"
+INPUT_XLSX = "BOM_with_category_sorted.xlsx"
 INPUT_SHEET = "BOM"
 
 OUTPUT_XLSX = "BOM_compressed_by_name.xlsx"

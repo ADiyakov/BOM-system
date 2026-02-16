@@ -88,7 +88,9 @@ SPECS = [
 
     python classify_category.py
 
-### Шаг 3 --- Ручная сортировка по Category and then Name (в Excel)
+### Шаг 3 --- Автоматическая сортировка по Category and then Name 
+
+    python sort_bom_after_category.py
 
 ### Шаг 4 --- Сжатие по Name
 
